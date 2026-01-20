@@ -51,6 +51,16 @@ make
 
 ## 安装
 
+### 一键安装 (macOS / Linux)
+
+如果您想直接从 GitHub 安装，可以使用以下一行命令：
+
+```bash
+git clone https://github.com/unknownparticles/jpeg-info.git && cd jpeg-info && mkdir -p build && cd build && cmake .. && make && sudo make install
+```
+
+### 分步安装
+
 您可以将 `jpeg_info` 安装到系统目录，以便在任何地方使用。
 
 ### macOS / Linux
