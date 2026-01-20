@@ -14,24 +14,35 @@
 #include <vector>
 
 int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <jpeg_file> [--lang=en|zh]\n";
-    std::cerr << "Example: " << argv[0] << " image.jpg --lang=zh\n";
-    return 1;
-  }
-
-  std::string path = argv[1];
   I18n i18n;
   i18n.lang = Lang::ZH; // 默认中文
 
+  std::string path;
+  bool help_requested = false;
+
   // 解析命令行参数
-  for (int i = 2; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
     std::string arg = argv[i];
-    if (arg == "--lang=en") {
+    if (arg == "-h" || arg == "--help") {
+      help_requested = true;
+    } else if (arg == "--lang=en") {
       i18n.lang = Lang::EN;
     } else if (arg == "--lang=zh") {
       i18n.lang = Lang::ZH;
+    } else if (path.empty()) {
+      path = arg;
     }
+  }
+
+  if (help_requested || path.empty()) {
+    std::cout << "JPEG Info - JPEG 元数据解析工具\n\n";
+    std::cout << "用法: " << argv[0] << " <jpeg文件> [选项]\n\n";
+    std::cout << "选项:\n";
+    std::cout << "  -h, --help      显示此帮助信息\n";
+    std::cout << "  --lang=en|zh    设置显示语言 (默认: zh)\n\n";
+    std::cout << "示例:\n";
+    std::cout << "  " << argv[0] << " image.jpg --lang=en\n";
+    return help_requested ? 0 : 1;
   }
 
   // 构建JPEG索引
