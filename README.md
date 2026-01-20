@@ -86,7 +86,29 @@ jpeg_info image.jpg
 
 # 使用英文显示
 jpeg_info image.jpg --lang=en
+
+# 只显示 EXIF 信息
+jpeg_info image.jpg --exif
+
+# 只显示 XMP 信息
+jpeg_info image.jpg --xmp
+
+# 组合显示 EXIF 和 XMP
+jpeg_info image.jpg --exif --xmp
+
+# 只显示分区列表
+jpeg_info image.jpg --segments
 ```
+
+**可用的选择性输出选项：**
+- `--segments`: 只显示分区列表
+- `--jfif`: 只显示 JFIF 信息
+- `--sof`: 只显示图像基本信息
+- `--exif`: 只显示 EXIF 信息
+- `--xmp`: 只显示 XMP 信息
+- `--icc`: 只显示 ICC Profile 信息
+- `--adobe`: 只显示 Adobe APP14 信息
+- `--com`: 只显示注释信息
 
 如果未安装，也可以在 `build` 目录下运行：
 

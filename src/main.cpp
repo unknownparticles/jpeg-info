@@ -20,6 +20,17 @@ int main(int argc, char *argv[]) {
   std::string path;
   bool help_requested = false;
 
+  // 过滤选项
+  bool show_segments = false;
+  bool show_jfif = false;
+  bool show_sof = false;
+  bool show_exif = false;
+  bool show_xmp = false;
+  bool show_icc = false;
+  bool show_adobe = false;
+  bool show_com = false;
+  bool any_filter_set = false;
+
   // 解析命令行参数
   for (int i = 1; i < argc; i++) {
     std::string arg = argv[i];
@@ -29,6 +40,30 @@ int main(int argc, char *argv[]) {
       i18n.lang = Lang::EN;
     } else if (arg == "--lang=zh") {
       i18n.lang = Lang::ZH;
+    } else if (arg == "--segments") {
+      show_segments = true;
+      any_filter_set = true;
+    } else if (arg == "--jfif") {
+      show_jfif = true;
+      any_filter_set = true;
+    } else if (arg == "--sof") {
+      show_sof = true;
+      any_filter_set = true;
+    } else if (arg == "--exif") {
+      show_exif = true;
+      any_filter_set = true;
+    } else if (arg == "--xmp") {
+      show_xmp = true;
+      any_filter_set = true;
+    } else if (arg == "--icc") {
+      show_icc = true;
+      any_filter_set = true;
+    } else if (arg == "--adobe") {
+      show_adobe = true;
+      any_filter_set = true;
+    } else if (arg == "--com") {
+      show_com = true;
+      any_filter_set = true;
     } else if (path.empty()) {
       path = arg;
     }
@@ -40,9 +75,26 @@ int main(int argc, char *argv[]) {
     std::cout << "选项:\n";
     std::cout << "  -h, --help      显示此帮助信息\n";
     std::cout << "  --lang=en|zh    设置显示语言 (默认: zh)\n\n";
+    std::cout << "选择性输出选项 (可组合使用):\n";
+    std::cout << "  --segments      只显示分区列表\n";
+    std::cout << "  --jfif          只显示 JFIF 信息\n";
+    std::cout << "  --sof           只显示图像基本信息 (SOF)\n";
+    std::cout << "  --exif          只显示 EXIF 信息\n";
+    std::cout << "  --xmp           只显示 XMP 信息\n";
+    std::cout << "  --icc           只显示 ICC Profile 信息\n";
+    std::cout << "  --adobe         只显示 Adobe APP14 信息\n";
+    std::cout << "  --com           只显示注释信息\n\n";
     std::cout << "示例:\n";
-    std::cout << "  " << argv[0] << " image.jpg --lang=en\n";
+    std::cout << "  " << argv[0] << " image.jpg\n";
+    std::cout << "  " << argv[0] << " image.jpg --exif\n";
+    std::cout << "  " << argv[0] << " image.jpg --exif --xmp --lang=en\n";
     return help_requested ? 0 : 1;
+  }
+
+  // 如果没有设置任何过滤选项，则显示所有内容
+  if (!any_filter_set) {
+    show_segments = show_jfif = show_sof = show_exif = show_xmp = show_icc =
+        show_adobe = show_com = true;
   }
 
   // 构建JPEG索引
@@ -59,14 +111,16 @@ int main(int argc, char *argv[]) {
   std::cout << std::string(80, '=') << "\n";
 
   // 打印分区列表
-  print_segments(std::cout, result.segments, i18n);
+  if (show_segments) {
+    print_segments(std::cout, result.segments, i18n);
+  }
 
   // 解析并打印各种元数据
   for (const auto &seg : result.segments) {
     std::vector<uint8_t> payload;
 
     // JFIF (APP0)
-    if (seg.marker == 0xFFE0 && seg.app_subtype == "JFIF") {
+    if (show_jfif && seg.marker == 0xFFE0 && seg.app_subtype == "JFIF") {
       if (load_segment_payload(path, seg, payload)) {
         auto jfif = parse_jfif_from_app0_payload(payload);
         if (jfif.has_value()) {
@@ -76,7 +130,7 @@ int main(int argc, char *argv[]) {
     }
 
     // SOF (Start of Frame)
-    if (is_sof_marker(seg.marker)) {
+    if (show_sof && is_sof_marker(seg.marker)) {
       if (load_segment_payload(path, seg, payload)) {
         auto sof = parse_sof_payload(seg.marker, payload);
         if (sof.has_value()) {
@@ -86,7 +140,7 @@ int main(int argc, char *argv[]) {
     }
 
     // EXIF (APP1)
-    if (seg.marker == 0xFFE1 && seg.app_subtype == "EXIF") {
+    if (show_exif && seg.marker == 0xFFE1 && seg.app_subtype == "EXIF") {
       if (load_segment_payload(path, seg, payload)) {
         auto exif = parse_exif_from_app1_payload(payload);
         if (exif.has_value()) {
@@ -96,7 +150,7 @@ int main(int argc, char *argv[]) {
     }
 
     // XMP (APP1)
-    if (seg.marker == 0xFFE1 && seg.app_subtype == "XMP") {
+    if (show_xmp && seg.marker == 0xFFE1 && seg.app_subtype == "XMP") {
       if (load_segment_payload(path, seg, payload)) {
         // 默认显示完整 XML（full=true），不截断
         auto xmp = parse_xmp_from_app1_payload(payload, true, 2048);
@@ -107,7 +161,7 @@ int main(int argc, char *argv[]) {
     }
 
     // ICC Profile (APP2)
-    if (seg.marker == 0xFFE2 && seg.app_subtype == "ICC") {
+    if (show_icc && seg.marker == 0xFFE2 && seg.app_subtype == "ICC") {
       if (load_segment_payload(path, seg, payload)) {
         auto chunk = parse_icc_chunk_from_app2_payload(payload);
         if (chunk.has_value()) {
@@ -139,7 +193,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Adobe (APP14)
-    if (seg.marker == 0xFFEE && seg.app_subtype == "Adobe") {
+    if (show_adobe && seg.marker == 0xFFEE && seg.app_subtype == "Adobe") {
       if (load_segment_payload(path, seg, payload)) {
         auto adobe = parse_adobe_app14_payload(payload);
         if (adobe.has_value()) {
@@ -149,7 +203,7 @@ int main(int argc, char *argv[]) {
     }
 
     // COM (Comment)
-    if (seg.marker == 0xFFFE) {
+    if (show_com && seg.marker == 0xFFFE) {
       if (load_segment_payload(path, seg, payload)) {
         auto com = parse_com_payload_preview(payload, 256);
         print_com_info(std::cout, com, i18n);
