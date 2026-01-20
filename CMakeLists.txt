@@ -26,3 +26,5 @@ if (MSVC)
 else()
   target_compile_options(jpeg_info PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
+install(TARGETS jpeg_info RUNTIME DESTINATION bin)

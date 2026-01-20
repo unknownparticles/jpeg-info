@@ -49,17 +49,39 @@ make
 
 编译成功后会在 `build` 目录生成 `jpeg_info` 可执行文件。
 
+## 安装
+
+您可以将 `jpeg_info` 安装到系统目录，以便在任何地方使用。
+
+### macOS / Linux
+
+```bash
+cd build
+sudo make install
+```
+
+默认情况下，程序会安装到 `/usr/local/bin/jpeg_info`。
+
+### Windows
+
+在编译完成后，您可以手动将 `jpeg_info.exe` 所在的目录添加到系统环境变量 `PATH` 中。
+
 ## 使用方法
+
+安装完成后，您可以直接在终端运行 `jpeg_info`：
 
 ```bash
 # 使用中文显示 (默认)
-./build/jpeg_info image.jpg
+jpeg_info image.jpg
 
 # 使用英文显示
-./build/jpeg_info image.jpg --lang=en
+jpeg_info image.jpg --lang=en
+```
 
-# 使用中文显示
-./build/jpeg_info image.jpg --lang=zh
+如果未安装，也可以在 `build` 目录下运行：
+
+```bash
+./build/jpeg_info image.jpg
 ```
 
 ## 输出示例
